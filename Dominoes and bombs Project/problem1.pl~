@@ -1,0 +1,100 @@
+search(InitialState,Row,Column):-
+    append([InitialState],[],Open),
+    search(Open,[],Result,Row,Column)
+    ,nl,
+    printSolution(Result,Column).
+%-----------------------------------------------
+search(Open,[_|Closed],Closed,_,_):-
+    Open = [],!,
+    write("Search is complete!").
+%BFS
+search(Open,Closed,Result,Row,Column):-
+    getState(Open, CurrentNode, TmpOpen),
+    getAllValidChildren(CurrentNode,TmpOpen,Closed,Row,Column,Children),
+    addChildren( TmpOpen,Children, NewOpen),
+    append(Closed,[CurrentNode], NewClosed),
+    search(NewOpen, NewClosed,Result,Row,Column).
+%----------------------------------------------------
+getAllValidChildren(Node, Open, Closed,Row,Column,Children):-
+    findall(Next,getNextState(Node,Open,Closed,Next,Row,Column),Children).
+%----------------------------------------------------
+getNextState(State, Open, Closed,Next,Row,Column):-
+    fill(State, Next,Row,Column),
+    not(member(Next, Open)),
+    not(member(Next, Closed)).
+%------------------------------------------------------
+addChildren(Children, Open, NewOpen):-
+    append(Open, Children, NewOpen).
+%-------------------------------------------------------
+getState([CurrentNode|Rest], CurrentNode, Rest).
+%--------------------------------------------------------
+printSolution([],_).
+
+printSolution([State|Closed],Column):-
+    printBoard(State,Column),
+    nl,
+    printSolution(Closed,Column).
+%--------------------------------------------------------
+fill(State, Next,Row,Column):-
+    fillHorizontally(State, Next,Column);
+    fillVertically(State, Next,Row,Column).
+
+fillHorizontally(State,Next,Column):-
+    nth0(EmptyTileIndex, State, #),
+    NewNum is Column-1,
+    not(NewNum is EmptyTileIndex mod Column),
+    NewIndex is EmptyTileIndex + 1,
+    nth0(NewIndex, State, SecondElement),
+    SecondElement = #,
+    Element is EmptyTileIndex+1,
+    substitute(Element,EmptyTileIndex,0,State, TmpList1),
+    substitute(Element,NewIndex,0, TmpList1,Next).
+
+fillVertically(State, Next,Row,Column):-
+    nth0(EmptyTileIndex, State, #),
+    EmptyTileIndex < Row*Column-Column,
+    NewIndex is EmptyTileIndex + Column,
+    nth0(NewIndex, State, SecondElement),
+    SecondElement = #,
+    Element is EmptyTileIndex +1,
+    substitute(Element,EmptyTileIndex,0,State, TmpList1),
+    substitute(Element,NewIndex,0, TmpList1,Next).
+%------------------------------------------------------------
+substitute(Element,Count,Count, [_|T],[Element|T]):- !.
+
+substitute(Element,Index,Count, [H|T],[H|NewT]):-
+    NewCount is Count +1,
+    substitute(Element,Index,NewCount,T,NewT).
+%----------------------------------------------------------
+printBoard([],_):-
+    write("-------------------------"),!.
+printBoard([H|T],Column):-
+    length(T, N),
+    write(H),
+    (0 is N mod Column -> nl ;(H = bom -> write('    ');write('           '))),
+    printBoard(T,Column).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
